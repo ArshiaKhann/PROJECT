@@ -18,12 +18,12 @@ connectCloudinary()
 // middlewares
 app.use(express.json())
 
-// ---- FIXED CORS BELOW ----
+// ---- FIXED CORS ----
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://frontend-chi-six-gkvfpidgg2.vercel.app"
+      "https://frontend-bizmuq2e4-arshiakhancoral-4809s-projects.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
