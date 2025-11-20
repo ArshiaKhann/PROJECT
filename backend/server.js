@@ -11,21 +11,34 @@ import orderRouter from './routes/orderRoute.js'
 // App Config
 const app = express()
 const port = process.env.PORT || 4000
+
 connectDB()
 connectCloudinary()
 
 // middlewares
 app.use(express.json())
-app.use(cors())
+
+// ---- FIXED CORS BELOW ----
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://frontend-chi-six-gkvfpidgg2.vercel.app"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+)
+// ---- END CORS FIX ----
 
 // api endpoints
-app.use('/api/user',userRouter)
-app.use('/api/product',productRouter)
-app.use('/api/cart',cartRouter)
-app.use('/api/order',orderRouter)
+app.use('/api/user', userRouter)
+app.use('/api/product', productRouter)
+app.use('/api/cart', cartRouter)
+app.use('/api/order', orderRouter)
 
-app.get('/',(req,res)=>{
-    res.send("API Working")
+app.get('/', (req, res) => {
+  res.send("API Working")
 })
 
-app.listen(port, ()=> console.log('Server started on PORT : '+ port))
+app.listen(port, () => console.log('Server started on PORT : ' + port))
