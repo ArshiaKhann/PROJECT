@@ -19,4 +19,4 @@ jobs:
 
       - name: Sync uploads folder to S3
         run: |
-          aws s3 sync backend/uploads s3://foreverandever/uploads --delete
+          aws s3 sync uploads s3://foreverandever/uploads --delete
