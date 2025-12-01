@@ -26,7 +26,7 @@ connectCloudinary();
 // ---------------------
 const allowedOrigins = [
   "http://localhost:5173",           // local frontend
-  "https://your-frontend.vercel.app" // replace with your Vercel URL
+  "https://project-nu-indol-55.vercel.app/" // replace with your Vercel URL
 ];
 
 app.use(
