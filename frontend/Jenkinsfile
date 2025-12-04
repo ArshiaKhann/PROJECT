@@ -1,34 +1,33 @@
 pipeline {
-  agent any
+    agent any
 
-  stages {
-    stage('Checkout') {
-      steps { checkout scm }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/ArshiaKhann/PROJECT'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'cd frontend && npm install'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'cd frontend && npm run build'
+            }
+        }
+
+        stage('Deploy to Nginx') {
+            steps {
+                sh '''
+                    sudo rm -rf /var/www/frontend/*
+                    sudo cp -r frontend/dist/* /var/www/frontend/
+                    sudo systemctl restart nginx
+                '''
+            }
+        }
     }
-
-    stage('Install dependencies') {
-      steps {
-        sh 'cd frontend && npm ci'
-      }
-    }
-
-    stage('Build') {
-      steps {
-        sh 'cd frontend && npm run build'
-      }
-    }
-
-    stage('Deploy to webroot') {
-      steps {
-        sh '''
-          rm -rf /var/www/frontend/* || true
-          rsync -av --delete frontend/dist/ /var/www/frontend/
-        '''
-      }
-    }
-  }
-
-  post {
-    success { echo "Deployed successfully!" }
-  }
 }
