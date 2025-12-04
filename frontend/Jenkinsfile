@@ -1,0 +1,36 @@
+pipeline {
+  agent any
+
+  tools { nodejs "Node20" }
+
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Install dependencies') {
+      steps {
+        sh 'cd frontend && npm ci'
+      }
+    }
+
+    stage('Build') {
+      steps {
+        sh 'cd frontend && npm run build'
+      }
+    }
+
+    stage('Deploy to webroot') {
+      steps {
+        sh '''
+          rm -rf /var/www/frontend/* || true
+          rsync -av --delete frontend/dist/ /var/www/frontend/
+        '''
+      }
+    }
+  }
+
+  post {
+    success { echo "Deployed successfully! Visit http://${env.NODE_NAME}/" }
+  }
+}
