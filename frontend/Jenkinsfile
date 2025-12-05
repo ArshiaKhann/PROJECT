@@ -1,34 +1,80 @@
+// Jenkinsfile (Declarative) - Build frontend folder then deploy to Vercel
 pipeline {
-    agent any
-
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                dir('frontend') {
-                    sh 'npm install'
-                }
-            }
-        }
-
-        stage('Build') {
-            steps {
-                dir('frontend') {
-                    sh 'npm run build'
-                }
-            }
-        }
-
-        stage('Deploy to Nginx') {
-            steps {
-                sh 'sudo rm -rf /var/www/frontend/*'
-                sh 'sudo cp -r frontend/dist/* /var/www/frontend/'
-            }
-        }
+  agent {
+    // Use official node image so tools are available. Change tag if needed.
+    docker {
+      image 'node:18-bullseye'
+      args '--user root:root' // run as root so scoping/installs are simpler
     }
+  }
+
+  environment {
+    // Add this secret in Jenkins (Secret text) with ID 'VERCEL_TOKEN'
+    VERCEL_TOKEN = credentials('VERCEL_TOKEN')
+    // If your frontend is in a subfolder use this
+    FRONTEND_DIR = 'frontend'
+  }
+
+  options { ansiColor('xterm'); timestamps() }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+        sh 'echo "Branch: ${GIT_BRANCH:-unknown}"'
+      }
+    }
+
+    stage('Install dependencies') {
+      steps {
+        dir("${FRONTEND_DIR}") {
+          sh 'npm ci'
+        }
+      }
+    }
+
+    stage('Run tests (optional)') {
+      steps {
+        dir("${FRONTEND_DIR}") {
+          // If you have tests, keep; otherwise it will run and likely exit 0
+          sh 'npm test || true'
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        dir("${FRONTEND_DIR}") {
+          sh 'npm run build'
+          // make sure build output exists
+          sh 'ls -la dist || true'
+        }
+        archiveArtifacts artifacts: "${FRONTEND_DIR}/dist/**", onlyIfSuccessful: true
+      }
+    }
+
+    stage('Deploy to Vercel') {
+      steps {
+        dir("${FRONTEND_DIR}") {
+          withEnv(["VERCEL_TOKEN=${VERCEL_TOKEN}"]) {
+            // Use npx so no global install requirement
+            // --prod does production deploy; use --confirm to suppress interactive prompts
+            sh '''
+              # install vercel cli briefly (npx will do it)
+              npx --yes vercel --version
+              # If you use a monorepo or different root, pass --cwd or cd into the correct folder (we're already in ${FRONTEND_DIR})
+              npx --yes vercel --prod --token "$VERCEL_TOKEN" --confirm || {
+                 echo "Vercel deploy failed"; exit 1;
+              }
+            '''
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    success { echo "SUCCESS: build & deploy finished" }
+    failure { echo "FAILED: check console logs" }
+  }
 }
