@@ -12,9 +12,12 @@ const Hero = () => {
                     <p className=' font-medium text-sm md:text-base'>STUDENT PICKS</p>
                 </div>
                 <h1 className="prata-regular text-3xl sm:py-3 lg:text-5xl leading-relaxed">
-  Latest Listing <br />
-  by Students
-</h1>
+               Latest Listing <br />
+               <span className="text-2xl lg:text-4xl text-gray-500">
+               by Students
+               </span>
+               </h1>
+
 
                 <div className='flex items-center gap-2'>
                     <p className='font-semibold text-sm md:text-base'>EXPLORE NOW  </p>
